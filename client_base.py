@@ -147,43 +147,43 @@ class Client:
         return headers
 
 
-def url(self, *last: str) -> str:
-    return url_join(self._env.end_point, self._env.tessa_env, self._api_name, 'rest', *last)
+    def url(self, *last: str) -> str:
+        return url_join(self._env.end_point, self._env.tessa_env, self._api_name, 'rest', *last)
 
 
-# noinspection PyShadowingNames
-def request(self, method: str, *last: str, json=None, stream=False, **params):
-    url = self.url(*last)
-    count = 0
-    error = None
-    timeout = config.timeout
-    while count <= config.max_retries:
-        try:
-            is_mime = params.pop("is_mime") if "is_mime" in params else False
-            resp = self._requests_session.request(
-                method, url, headers=self.headers(is_mime), json=json,
-                verify=False, stream=stream, timeout=timeout, **params)
-            resp = check_response(resp)
-        except Exception as exc:
-            count += 1
-            time.sleep(0.5 * count)
-            timeout += count * 5
-            error = exc
+    # noinspection PyShadowingNames
+    def request(self, method: str, *last: str, json=None, stream=False, **params):
+        url = self.url(*last)
+        count = 0
+        error = None
+        timeout = config.timeout
+        while count <= config.max_retries:
+            try:
+                is_mime = params.pop("is_mime") if "is_mime" in params else False
+                resp = self._requests_session.request(
+                    method, url, headers=self.headers(is_mime), json=json,
+                    verify=False, stream=stream, timeout=timeout, **params)
+                resp = check_response(resp)
+            except Exception as exc:
+                count += 1
+                time.sleep(0.5 * count)
+                timeout += count * 5
+                error = exc
+            else:
+                return resp.json() if not stream else resp
         else:
-            return resp.json() if not stream else resp
-    else:
-        if error is not None:
-            raise ClientError(f'Client request failed for {method.upper()} {url}: {error}')
-        else:
-            raise ClientError(f'Client request failed for {method.upper()} {url} without any exception')
+            if error is not None:
+                raise ClientError(f'Client request failed for {method.upper()} {url}: {error}')
+            else:
+                raise ClientError(f'Client request failed for {method.upper()} {url} without any exception')
 
 
-def get(self, *last: str, stream=False, **params):
-    return self.request('get', *last, stream=stream, **params)
+    def get(self, *last: str, stream=False, **params):
+        return self.request('get', *last, stream=stream, **params)
 
 
-def post(self, *last: str, data=None, **params):
-    return self.request('post', *last, data=data, **params)
+    def post(self, *last: str, data=None, **params):
+        return self.request('post', *last, data=data, **params)
 
 
 class XOneTradeInfoClient(Client):
